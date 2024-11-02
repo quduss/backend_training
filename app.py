@@ -43,14 +43,14 @@ def get_users():
 
 @app.route('/users/<int:user_id>', methods=['GET'])
 def get_user(user_id):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if user:
         return jsonify(user.to_dict()), 200
     return jsonify({"error": "User not found"}), 404
 
 @app.route('/users/<int:user_id>', methods=['PUT'])
 def update_user(user_id):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if user:
         data = request.get_json()
         user.email = data.get('email', user.email)
@@ -60,7 +60,7 @@ def update_user(user_id):
 
 @app.route('/users/<int:user_id>', methods=['DELETE'])
 def delete_user(user_id):
-    user = User.query.get(user_id)
+    user = db.session.get(User, user_id)
     if user:
         db.session.delete(user)
         db.session.commit()
