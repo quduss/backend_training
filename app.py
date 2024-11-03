@@ -3,6 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.exc import IntegrityError
 import os
 from dotenv import load_dotenv
+from sqlalchemy.sql import func
 
 
 load_dotenv()
@@ -18,7 +19,7 @@ class User(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     username = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(100), unique=True, nullable=False)
-    created_at = db.Column(db.TIMESTAMP, nullable=False)
+    created_at = db.Column(db.TIMESTAMP, nullable=False, server_default=func.now())
 
     def to_dict(self):
         return {
