@@ -29,17 +29,43 @@ class User(db.Model):
             "created_at": self.created_at
         }
 
+# Global error handler for IntegrityError
+@app.errorhandler(IntegrityError)
+def handle_integrity_error(error):
+    response = {"error": "User with this email already exists"}
+    return jsonify(response), 400
+
+# Global error handler for 404 errors
+@app.errorhandler(404)
+def resource_not_found(error):
+    response = {"error": "Resource not found"}
+    return jsonify(response), 404
+
+# Global error handler for 500 errors
+@app.errorhandler(500)
+def internal_server_error(error):
+    response = {"error": "An unexpected error occurred"}
+    return jsonify(response), 500
+
 @app.route('/users', methods=['POST'])
 def create_user():
     data = request.get_json()
+    # Validate input
+    if not data or not data.get("username") or not data.get("email"):
+        return jsonify({"error": "Username and email are required"}), 400
+
     new_user = User(username=data['username'], email=data['email'])
     db.session.add(new_user)
     try:
         db.session.commit()
         return jsonify(new_user.to_dict()), 201
-    except IntegrityError:
+    except IntegrityError as e:
         db.session.rollback()
-        return jsonify({"error": "User with this email already exists"}), 400
+        raise e
+    except Exception as e:
+        # Log unexpected exceptions and raise them for the 500 handler
+        app.logger.error(f"Unexpected error: {str(e)}")
+        raise e
 
 @app.route('/users', methods=['GET'])
 def get_users():
