@@ -4,6 +4,7 @@ from sqlalchemy.exc import IntegrityError
 import os
 from dotenv import load_dotenv
 from sqlalchemy.sql import func
+from marshmallow import Schema, fields, ValidationError
 
 
 load_dotenv()
@@ -29,6 +30,10 @@ class User(db.Model):
             "created_at": self.created_at
         }
 
+class UserSchema(Schema):
+    email = fields.Email(required=True)
+    username = fields.Str(required=True)
+
 # Global error handler for IntegrityError
 @app.errorhandler(IntegrityError)
 def handle_integrity_error(error):
@@ -51,8 +56,13 @@ def internal_server_error(error):
 def create_user():
     data = request.get_json()
     # Validate input
-    if not data or not data.get("username") or not data.get("email"):
-        return jsonify({"error": "Username and email are required"}), 400
+    schema = UserSchema()
+    try:
+        validated_data = schema.load(data)
+    except ValidationError as err:
+        return jsonify({"errors": err.messages}), 400
+    #if not data or not data.get("username") or not data.get("email"):
+        #return jsonify({"error": "Username and email are required"}), 400
 
     new_user = User(username=data['username'], email=data['email'])
     db.session.add(new_user)
