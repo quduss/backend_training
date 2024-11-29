@@ -64,7 +64,7 @@ def create_user():
     #if not data or not data.get("username") or not data.get("email"):
         #return jsonify({"error": "Username and email are required"}), 400
 
-    new_user = User(username=data['username'], email=data['email'])
+    new_user = User(username=validated_data['username'], email=validated_data['email'])
     db.session.add(new_user)
     try:
         db.session.commit()
